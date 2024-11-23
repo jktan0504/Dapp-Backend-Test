@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
 const {CUSTOMER} = require('../config/constant')
 
+// ** Import bcryptjs Libary 
+const bcryptjs = require('bcryptjs');
+
 //------------ User Schema ------------//
 const UserSchema = new mongoose.Schema({
   username: {type: String, unique : true, required: true},
@@ -17,6 +20,16 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 UserSchema.plugin(uniqueValidator, {message: 'is already taken.'});
+
+// ** Optimized: Pre-save hook to hash the password
+UserSchema.pre('save', async function (next) {
+	const user = this;
+	if (user.isModified('password')) {
+	  user.password = await bcryptjs.hash(user.password, 10);
+	}
+	next();
+});
+  
 
 const User = mongoose.model('User', UserSchema);
 
